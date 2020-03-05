@@ -1,7 +1,7 @@
 package kubectl
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"strings"
 	"testing"
@@ -21,11 +21,13 @@ func init() {
 	envKubeconfig := os.Getenv(kubeconfigEnvVarName)
 	c, err := NewClientE(envContext, envKubeconfig)
 	if err != nil {
-		panic(fmt.Sprintf("failed to create the client with context %q and kubeconfig %q", envContext, envKubeconfig))
+		log.Println("You may not have a kubernetes cluster properly configured to run the tests. Create a cluster either with Kind or Docker Desktop to execute the tests and make sure it's configured correctly")
+		log.Fatalf("failed to create the client with context %q and kubeconfig %q", envContext, envKubeconfig)
 	}
 
 	if _, err := c.Version(); err != nil {
-		panic("the Kubernetes cluster is not reachable")
+		log.Println("You may not have a kubernetes cluster to run the tests. Create a cluster either with Kind or Docker Desktop to execute the tests")
+		log.Fatalf("the Kubernetes cluster is not reachable")
 	}
 }
 

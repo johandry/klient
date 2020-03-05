@@ -2,10 +2,9 @@ package kubectl
 
 import (
 	"io/ioutil"
+	"log"
 	"os"
 	"testing"
-
-	"log"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -46,6 +45,10 @@ func TestClient_Apply_CreateAndDelete(t *testing.T) {
 			}
 			if err := c.Apply(tt.content); (err != nil) != tt.wantErr {
 				t.Errorf("Client.Apply() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if err := c.Delete(tt.content); err != nil {
+				t.Errorf("Client.Delete() error = %v", err)
 			}
 		})
 	}
@@ -112,6 +115,84 @@ func TestClient_Apply_PatchAndDelete(t *testing.T) {
 			}
 			if got != tt.want {
 				t.Errorf("Client.Apply() = %v, want %v ", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestClient_ApplyFiles(t *testing.T) {
+	envContext := os.Getenv(contextEnvVarName)
+	envKubeconfig := os.Getenv(kubeconfigEnvVarName)
+
+	tests := []struct {
+		name         string
+		filenames    []string
+		checkIsThere func(*Client) (bool, error)
+		wantItThere  bool
+		context      string
+		kubeconfig   string
+		wantErr      bool
+	}{
+		{"apply 1 configMap file", []string{"./testdata/cm.yaml"},
+			func(c *Client) (bool, error) {
+				cm, err := c.Clientset.CoreV1().ConfigMaps("default").Get("test0", metav1.GetOptions{})
+				if err != nil {
+					return false, err
+				}
+
+				isThere := (cm.Data["key1"] == "apple")
+				return isThere, nil
+			}, true,
+			envContext, envKubeconfig, false},
+		{"apply 2 configMap files", []string{"./testdata/cm.yaml", "./testdata/cml.yaml"},
+			func(c *Client) (bool, error) {
+				cm0, err := c.Clientset.CoreV1().ConfigMaps("default").Get("test0", metav1.GetOptions{})
+				if err != nil {
+					return false, err
+				}
+				cm1, err := c.Clientset.CoreV1().ConfigMaps("default").Get("test1", metav1.GetOptions{})
+				if err != nil {
+					return false, err
+				}
+
+				isThere := (cm0.Data["key1"] == "strawberry" && cm1.Data["key2"] == "pinaple")
+				return isThere, nil
+			}, true,
+			envContext, envKubeconfig, false},
+		// TODO: Replace this URL for other in the project repository
+		{"apply secret from URL", []string{"https://gist.githubusercontent.com/xcoulon/cf513f9dc27a0a156c9717bceff219d7/raw/392f6966951e34e27287cacc7c216c56622edd28/databse-secrets.yaml"},
+			func(c *Client) (bool, error) {
+				cm, err := c.Clientset.CoreV1().ConfigMaps("default").Get("database-secret-config", metav1.GetOptions{})
+				if err != nil {
+					return false, err
+				}
+
+				isThere := (cm.Data["dbname"] != "" && cm.Data["password"] != "" && cm.Data["username"] != "")
+				return isThere, nil
+			}, true,
+			envContext, envKubeconfig, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c, err := NewClientE(tt.context, tt.kubeconfig)
+			if err != nil {
+				t.Fatalf("failed to create the client with context %q and kubeconfig %q", tt.context, tt.kubeconfig)
+			}
+
+			if err := c.ApplyFiles(tt.filenames...); (err != nil) != tt.wantErr {
+				t.Errorf("Client.ApplyFiles() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			isThere, err := tt.checkIsThere(c)
+			if err != nil {
+				t.Errorf("Client.ApplyFiles() failed to check the applied resource. error = %v", err)
+			} else if isThere != tt.wantItThere {
+				t.Errorf("Client.ApplyFiles() resource applied are not there")
+			}
+
+			if err := c.DeleteFiles(tt.filenames...); err != nil {
+				t.Errorf("Client.Delete() error = %v", err)
 			}
 		})
 	}
