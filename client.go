@@ -1,44 +1,54 @@
-package kube
+package kubectl
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 
-	"k8s.io/cli-runtime/pkg/genericclioptions/resource"
+	v1 "k8s.io/api/core/v1"
+	"k8s.io/cli-runtime/pkg/resource"
 	"k8s.io/client-go/kubernetes"
-	"k8s.io/kubernetes/pkg/kubectl/validation"
+	"k8s.io/kubectl/pkg/validation"
 )
 
 // Client is a kubernetes client, like `kubectl`
 type Client struct {
-	Config *Config
-	// validator        validation.Schema
+	Clientset        *kubernetes.Clientset
+	factory          *factory
+	validator        validation.Schema
 	namespace        string
 	enforceNamespace bool
-	clientset        *kubernetes.Clientset
 }
+
+// Result is an alias for the Kubernetes CLI runtime resource.Result
+type Result = resource.Result
 
 // NewClientE creates a kubernetes client, returns an error if fail
 func NewClientE(context, kubeconfig string) (*Client, error) {
-	config := NewConfig(context, kubeconfig)
+	factory := newFactory(context, kubeconfig)
 
-	// validator, _ := config.Validator(true)
+	// If `true` it will always validate the given objects/resources
+	validator, _ := factory.Validator(true)
 
-	namespace, enforceNamespace, err := config.ToRawKubeConfigLoader().Namespace()
+	namespace, enforceNamespace, err := factory.ToRawKubeConfigLoader().Namespace()
+	if err != nil {
+		namespace = v1.NamespaceDefault
+		enforceNamespace = true
+	}
+	clientset, err := factory.KubernetesClientSet()
 	if err != nil {
 		return nil, err
 	}
-	clientset, err := config.KubernetesClientSet()
-	if err != nil {
-		return nil, err
+	if clientset == nil {
+		return nil, fmt.Errorf("cannot create a clientset from given context and kubeconfig")
 	}
 
 	return &Client{
-		Config:           config,
-		validator:        validation.NullSchema{},
+		factory:          factory,
+		Clientset:        clientset,
+		validator:        validator,
 		namespace:        namespace,
 		enforceNamespace: enforceNamespace,
-		clientset:        clientset,
 	}, nil
 }
 
@@ -48,62 +58,47 @@ func NewClient(context, kubeconfig string) *Client {
 	return client
 }
 
-// UnstructuredBuilder creates an unstructure builder for the given namespace
-func (c *Client) UnstructuredBuilder() *resource.Builder {
-	return c.Config.
-		NewBuilder().
-		Unstructured().
-		Schema(c.validator).
-		ContinueOnError().
-		NamespaceParam(c.namespace).DefaultNamespace()
-}
+// Builder creates a resource builder
+func (c *Client) builder(unstructured bool) *resource.Builder {
+	b := c.factory.NewBuilder()
 
-// Builder creates a builder for the given namespace
-func (c *Client) Builder() *resource.Builder {
-	return c.Config.
-		NewBuilder().
+	if unstructured {
+		b = b.Unstructured()
+	}
+
+	return b.
 		Schema(c.validator).
 		ContinueOnError().
 		NamespaceParam(c.namespace).DefaultNamespace()
 }
 
 // ResultForFilenameParam returns the builder results for the given list of files or URLs
-func (c *Client) ResultForFilenameParam(filenames []string, unstructured bool) *resource.Result {
+func (c *Client) ResultForFilenameParam(filenames []string, unstructured bool) *Result {
 	filenameOptions := &resource.FilenameOptions{
 		Recursive: false,
 		Filenames: filenames,
 	}
 
-	var b *resource.Builder
-	if unstructured {
-		b = c.UnstructuredBuilder()
-	} else {
-		b = c.Builder()
-	}
-
-	return b.
+	return c.builder(unstructured).
 		FilenameParam(c.enforceNamespace, filenameOptions).
 		Flatten().
 		Do()
 }
 
 // ResultForReader returns the builder results for the given reader
-func (c *Client) ResultForReader(r io.Reader, unstructured bool) *resource.Result {
-	var b *resource.Builder
-	if unstructured {
-		b = c.UnstructuredBuilder()
-	} else {
-		b = c.Builder()
-	}
-
-	return b.
+func (c *Client) ResultForReader(r io.Reader, unstructured bool) *Result {
+	return c.builder(unstructured).
 		Stream(r, "").
 		Flatten().
 		Do()
 }
 
 // ResultForContent returns the builder results for the given content
-func (c *Client) ResultForContent(content []byte, unstructured bool) *resource.Result {
+func (c *Client) ResultForContent(content []byte, unstructured bool) *Result {
 	b := bytes.NewBuffer(content)
 	return c.ResultForReader(b, unstructured)
+}
+
+func failedTo(action string, info *resource.Info, err error) error {
+	return fmt.Errorf("cannot %s object %s. %s", action, info.String(), err)
 }
