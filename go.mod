@@ -1,4 +1,4 @@
-module github.com/johandry/kubectl
+module github.com/johandry/klient
 
 go 1.14
 

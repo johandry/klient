@@ -1,4 +1,4 @@
-package kubectl
+package klient
 
 import (
 	"os"

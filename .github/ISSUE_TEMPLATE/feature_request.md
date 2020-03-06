@@ -19,7 +19,7 @@ A clear and concise description of what you want to happen.
 A clear and concise description of any alternative solutions or features you've considered.
 
 **Proposal**
-If you have an idea about how to address the problem via a change to k8s-client features or code, please, describe it here.
+If you have an idea about how to address the problem via a change to klient features or code, please, describe it here.
 
 **Additional context**
 Add any other context or screenshots about the feature request here.

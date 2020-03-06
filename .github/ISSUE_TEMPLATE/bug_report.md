@@ -39,7 +39,7 @@ For lengthy log-files, consider posting them as a gist (https://gist.github.com)
 Don't forget to remove sensitive data from your logfiles before posting. You can replace those parts with "REDACTED".
 
 **Versions:**
- - k8s-client: [e.g. v0.0.1]
+ - klient: [e.g. v0.0.1]
  - Kubernetes: [e.g. v0.15.5]
 
 **Additional context:**

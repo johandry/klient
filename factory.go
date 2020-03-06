@@ -1,4 +1,4 @@
-package kubectl
+package klient
 
 import (
 	"path/filepath"
