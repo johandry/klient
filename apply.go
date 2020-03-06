@@ -1,93 +1,41 @@
-package kube
+package klient
 
 import (
-	"fmt"
-
 	"k8s.io/apimachinery/pkg/api/errors"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/cli-runtime/pkg/genericclioptions/resource"
+	"k8s.io/cli-runtime/pkg/resource"
 )
 
 // Apply creates a resource with the given content
 func (c *Client) Apply(content []byte) error {
-	if err := c.ApplyNamespace(c.namespace); err != nil {
-		return err
-	}
-
-	// infos, err := c.ResultForContent(content, true).Infos()
-	// if err != nil {
-	// 	return err
-	// }
-
 	r := c.ResultForContent(content, true)
-	return r.Visit(apply)
+	return c.ApplyResource(r)
 }
 
-// Apply creates a resource with the given content
-func (c *Client) ApplyFile(filename string) error {
-	if err := c.ApplyNamespace(c.namespace); err != nil {
-		return err
-	}
+// ApplyFiles create the resource(s) from the given filenames (file, directory or STDIN) or HTTP URLs
+func (c *Client) ApplyFiles(filenames ...string) error {
+	r := c.ResultForFilenameParam(filenames, true)
+	return c.ApplyResource(r)
+}
 
-	r := c.ResultForFilenameParam(filename)
+// ApplyResource applies the given resource. Create the resources with `ResultForFilenameParam` or `ResultForContent`
+func (c *Client) ApplyResource(r *resource.Result) error {
 	return r.Visit(apply)
 }
 
 func apply(info *resource.Info, err error) error {
 	if err != nil {
-		return err
+		return failedTo("apply", info, err)
 	}
 
-	// modified, err := kubectl.GetModifiedConfiguration(info.Object, true, unstructured.UnstructuredJSONScheme)
-	// if err != nil {
-	// 	return fmt.Errorf("retrieving modified configuration from %s. %s", info.String(), err)
-	// }
-
-	// If does not exists, just create it
-	if err := info.Get(); err != nil {
+	// If it does not exists, just create it
+	originalObj, err := resource.NewHelper(info.Client, info.Mapping).Get(info.Namespace, info.Name, info.Export)
+	if err != nil {
 		if !errors.IsNotFound(err) {
-			return fmt.Errorf("retrieving current configuration of %s. %s", info.String(), err)
+			return failedTo("retrieve current configuration", info, err)
 		}
-		return create(info, err)
+		return create(info, nil)
 	}
 
 	// If exists, patch it
-	return patch(info, err)
-}
-
-// Create creates a resource with the given content
-func (c *Client) Create(content []byte) error {
-	if err := c.ApplyNamespace(c.namespace); err != nil {
-		return err
-	}
-
-	r := c.ResultForContent(content, true)
-	return r.Visit(create)
-}
-
-// CreateFile creates a resource with the given content
-func (c *Client) CreateFile(filename string) error {
-	if err := c.ApplyNamespace(c.namespace); err != nil {
-		return err
-	}
-
-	r := c.ResultForFilenameParam(filename)
-	return r.Visit(create)
-}
-
-func create(info *resource.Info, err error) error {
-	// if err := kubectl.CreateApplyAnnotation(info.Object, unstructured.UnstructuredJSONScheme); err != nil {
-	// 	return fmt.Errorf("creating %s. %s", info.String(), err)
-	// }
-
-	options := metav1.CreateOptions{}
-	obj, err := resource.NewHelper(info.Client, info.Mapping).Create(info.Namespace, true, info.Object, &options)
-	if err != nil {
-		return fmt.Errorf("creating %s. %s", info.String(), err)
-	}
-	return info.Refresh(obj, true)
-}
-
-func patch(info *resource.Info) error {
-	return fmt.Errorf("patch is not implemented yet")
+	return patch(info, originalObj)
 }

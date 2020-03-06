@@ -1,0 +1,16 @@
+apiVersion: v1
+items:
+- kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: test-apply-1
+  data:
+    key1: strawberry
+- kind: ConfigMap
+  apiVersion: v1
+  metadata:
+    name: test-apply-2
+  data:
+    key2: pinaple
+kind: ConfigMapList
+metadata: {}
