@@ -1,8 +1,6 @@
 package kubectl
 
 import (
-	"fmt"
-
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/cli-runtime/pkg/resource"
 )
@@ -29,16 +27,11 @@ func apply(info *resource.Info, err error) error {
 		return failedTo("apply", info, err)
 	}
 
-	// // modified, err := kubectl.GetModifiedConfiguration(info.Object, true, unstructured.UnstructuredJSONScheme)
-	// // if err != nil {
-	// //	  return fmt.Errorf("retrieving modified configuration from %s. %s", info.String(), err)
-	// // }
-
-	// If does not exists, just create it
+	// If it does not exists, just create it
 	originalObj, err := resource.NewHelper(info.Client, info.Mapping).Get(info.Namespace, info.Name, info.Export)
 	if err != nil {
 		if !errors.IsNotFound(err) {
-			return fmt.Errorf("retrieving current configuration of %s. %s", info.String(), err)
+			return failedTo("retrieve current configuration", info, err)
 		}
 		return create(info, nil)
 	}

@@ -100,5 +100,10 @@ func (c *Client) ResultForContent(content []byte, unstructured bool) *Result {
 }
 
 func failedTo(action string, info *resource.Info, err error) error {
-	return fmt.Errorf("cannot %s object %s. %s", action, info.String(), err)
+	var resKind string
+	if info.Mapping != nil {
+		resKind = info.Mapping.GroupVersionKind.Kind + " "
+	}
+
+	return fmt.Errorf("cannot %s object Kind: %q,	Name: %q, Namespace: %q. %s", action, resKind, info.Name, info.Namespace, err)
 }
