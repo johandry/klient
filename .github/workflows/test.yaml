@@ -3,7 +3,7 @@ on: [push, pull_request]
 
 jobs:
   test-kindly:
-    name: Test with Go v${{ matrix.go-version }} and KinD {{ matrix.kind-version }}
+    name: Test with Go v${{ matrix.go-version }} and KinD ${{ matrix.kind-version }}
     strategy:
       matrix:
         go-version: [1.13.x, 1.14.x]
