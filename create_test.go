@@ -119,7 +119,7 @@ func TestClient_CreateFile_thenDlete(t *testing.T) {
 					return false, err
 				}
 
-				isThere := (string(s.Data["password"]) == "Super5ecret0")
+				isThere := (string(s.Data["password"]) == "Super5ecret0!")
 				return isThere, nil
 			}, true,
 			envContext, envKubeconfig, false},
