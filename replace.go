@@ -13,13 +13,13 @@ import (
 
 // Replace creates a resource with the given content
 func (c *Client) Replace(content []byte) error {
-	r := c.ResultForContent(content, true)
+	r := c.ResultForContent(content, nil)
 	return c.ReplaceResource(r)
 }
 
 // ReplaceFiles create the resource(s) from the given filenames (file, directory or STDIN) or HTTP URLs
 func (c *Client) ReplaceFiles(filenames ...string) error {
-	r := c.ResultForFilenameParam(filenames, true)
+	r := c.ResultForFilenameParam(filenames, nil)
 	return c.ReplaceResource(r)
 }
 

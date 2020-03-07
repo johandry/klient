@@ -7,13 +7,13 @@ import (
 
 // Create creates a resource with the given content
 func (c *Client) Create(content []byte) error {
-	r := c.ResultForContent(content, true)
+	r := c.ResultForContent(content, nil)
 	return c.CreateResource(r)
 }
 
 // CreateFile creates a resource with the given content
 func (c *Client) CreateFile(filenames ...string) error {
-	r := c.ResultForFilenameParam(filenames, true)
+	r := c.ResultForFilenameParam(filenames, nil)
 	return c.CreateResource(r)
 }
 

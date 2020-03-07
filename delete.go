@@ -7,13 +7,13 @@ import (
 
 // Delete creates a resource with the given content
 func (c *Client) Delete(content []byte) error {
-	r := c.ResultForContent(content, true)
+	r := c.ResultForContent(content, nil)
 	return c.DeleteResource(r)
 }
 
 // DeleteFiles create the resource(s) from the given filenames (file, directory or STDIN) or HTTP URLs
 func (c *Client) DeleteFiles(filenames ...string) error {
-	r := c.ResultForFilenameParam(filenames, true)
+	r := c.ResultForFilenameParam(filenames, nil)
 	return c.DeleteResource(r)
 }
 

@@ -23,6 +23,19 @@ type Client struct {
 // Result is an alias for the Kubernetes CLI runtime resource.Result
 type Result = resource.Result
 
+// BuilderOptions parameters to create a Resource Builder
+type BuilderOptions struct {
+	Unstructured bool
+}
+
+// DefaultBuilderOptions creates a BuilderOptions with the default values for
+// the parameters to create a Resource Builder
+func DefaultBuilderOptions() *BuilderOptions {
+	return &BuilderOptions{
+		Unstructured: true,
+	}
+}
+
 // NewClientE creates a kubernetes client, returns an error if fail
 func NewClientE(context, kubeconfig string) (*Client, error) {
 	factory := newFactory(context, kubeconfig)
@@ -59,10 +72,13 @@ func NewClient(context, kubeconfig string) *Client {
 }
 
 // Builder creates a resource builder
-func (c *Client) builder(unstructured bool) *resource.Builder {
+func (c *Client) builder(opt *BuilderOptions) *resource.Builder {
+	if opt == nil {
+		opt = DefaultBuilderOptions()
+	}
 	b := c.factory.NewBuilder()
 
-	if unstructured {
+	if opt.Unstructured {
 		b = b.Unstructured()
 	}
 
@@ -73,30 +89,30 @@ func (c *Client) builder(unstructured bool) *resource.Builder {
 }
 
 // ResultForFilenameParam returns the builder results for the given list of files or URLs
-func (c *Client) ResultForFilenameParam(filenames []string, unstructured bool) *Result {
+func (c *Client) ResultForFilenameParam(filenames []string, opt *BuilderOptions) *Result {
 	filenameOptions := &resource.FilenameOptions{
 		Recursive: false,
 		Filenames: filenames,
 	}
 
-	return c.builder(unstructured).
+	return c.builder(opt).
 		FilenameParam(c.enforceNamespace, filenameOptions).
 		Flatten().
 		Do()
 }
 
 // ResultForReader returns the builder results for the given reader
-func (c *Client) ResultForReader(r io.Reader, unstructured bool) *Result {
-	return c.builder(unstructured).
+func (c *Client) ResultForReader(r io.Reader, opt *BuilderOptions) *Result {
+	return c.builder(opt).
 		Stream(r, "").
 		Flatten().
 		Do()
 }
 
 // ResultForContent returns the builder results for the given content
-func (c *Client) ResultForContent(content []byte, unstructured bool) *Result {
+func (c *Client) ResultForContent(content []byte, opt *BuilderOptions) *Result {
 	b := bytes.NewBuffer(content)
-	return c.ResultForReader(b, unstructured)
+	return c.ResultForReader(b, opt)
 }
 
 func failedTo(action string, info *resource.Info, err error) error {
