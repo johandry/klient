@@ -197,15 +197,14 @@ func TestClient_ApplyFiles_thenDelete(t *testing.T) {
 				return isThere, nil
 			}, true,
 			envContext, envKubeconfig, false},
-		// TODO: Replace this URL for other in the project repository
-		{"apply secret from URL", []string{"https://gist.githubusercontent.com/xcoulon/cf513f9dc27a0a156c9717bceff219d7/raw/392f6966951e34e27287cacc7c216c56622edd28/databse-secrets.yaml"},
+		{"apply secret from URL", []string{"https://raw.githubusercontent.com/johandry/klient/master/testdata/apply/secret.yaml"},
 			func(c *Client) (bool, error) {
-				s, err := c.Clientset.CoreV1().Secrets("default").Get("database-secret-config", metav1.GetOptions{})
+				s, err := c.Clientset.CoreV1().Secrets("default").Get("test-secret-apply-0", metav1.GetOptions{})
 				if err != nil {
 					return false, err
 				}
 
-				isThere := (len(s.Data["dbname"]) != 0 && len(s.Data["password"]) != 0 && len(s.Data["username"]) != 0)
+				isThere := (string(s.Data["password"]) == "Super5ecret0")
 				return isThere, nil
 			}, true,
 			envContext, envKubeconfig, false},

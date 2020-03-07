@@ -112,18 +112,17 @@ func TestClient_CreateFile_thenDlete(t *testing.T) {
 				return isThere, nil
 			}, true,
 			envContext, envKubeconfig, false},
-		// TODO: Replace this URL for other in the project repository
-		// {"create secret from URL", []string{"https://gist.githubusercontent.com/xcoulon/cf513f9dc27a0a156c9717bceff219d7/raw/392f6966951e34e27287cacc7c216c56622edd28/databse-secrets.yaml"},
-		// 	func(c *Client) (bool, error) {
-		// 		s, err := c.Clientset.CoreV1().Secrets("default").Get("database-secret-config", metav1.GetOptions{})
-		// 		if err != nil {
-		// 			return false, err
-		// 		}
+		{"create secret from URL", []string{"https://raw.githubusercontent.com/johandry/klient/master/testdata/create/secret.yaml"},
+			func(c *Client) (bool, error) {
+				s, err := c.Clientset.CoreV1().Secrets("default").Get("test-secret-create-0", metav1.GetOptions{})
+				if err != nil {
+					return false, err
+				}
 
-		// 		isThere := (len(s.Data["dbname"]) != 0 && len(s.Data["password"]) != 0 && len(s.Data["username"]) != 0)
-		// 		return isThere, nil
-		// 	}, true,
-		// 	envContext, envKubeconfig, false},
+				isThere := (string(s.Data["password"]) == "Super5ecret0")
+				return isThere, nil
+			}, true,
+			envContext, envKubeconfig, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
