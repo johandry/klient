@@ -36,8 +36,8 @@ func DefaultBuilderOptions() *BuilderOptions {
 	}
 }
 
-// NewClientE creates a kubernetes client, returns an error if fail
-func NewClientE(context, kubeconfig string) (*Client, error) {
+// NewE creates a kubernetes client, returns an error if fail
+func NewE(context, kubeconfig string) (*Client, error) {
 	factory := newFactory(context, kubeconfig)
 
 	// If `true` it will always validate the given objects/resources
@@ -65,9 +65,9 @@ func NewClientE(context, kubeconfig string) (*Client, error) {
 	}, nil
 }
 
-// NewClient creates a kubernetes client
-func NewClient(context, kubeconfig string) *Client {
-	client, _ := NewClientE(context, kubeconfig)
+// New creates a kubernetes client
+func New(context, kubeconfig string) *Client {
+	client, _ := NewE(context, kubeconfig)
 	return client
 }
 

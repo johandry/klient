@@ -19,7 +19,7 @@ const (
 func init() {
 	envContext := os.Getenv(contextEnvVarName)
 	envKubeconfig := os.Getenv(kubeconfigEnvVarName)
-	c, err := NewClientE(envContext, envKubeconfig)
+	c, err := NewE(envContext, envKubeconfig)
 	if err != nil {
 		log.Println("You may not have a kubernetes cluster properly configured to run the tests. Create a cluster either with Kind or Docker Desktop to execute the tests and make sure it's configured correctly")
 		log.Fatalf("failed to create the client with context %q and kubeconfig %q", envContext, envKubeconfig)
@@ -47,7 +47,7 @@ func TestClient_CreateAndDeleteNamespace(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c, err := NewClientE(tt.context, tt.kubeconfig)
+			c, err := NewE(tt.context, tt.kubeconfig)
 			if err != nil {
 				t.Fatalf("failed to create the client with context %q and kubeconfig %q", tt.context, tt.kubeconfig)
 			}
@@ -87,10 +87,10 @@ func TestClient_Version(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c, err := NewClientE(tt.context, tt.kubeconfig)
+			c, err := NewE(tt.context, tt.kubeconfig)
 			if err != nil {
 				if !tt.wantErr {
-					t.Errorf("NewClient() error = %v, wantErr %v", err, tt.wantErr)
+					t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
 				}
 				return
 			}
