@@ -11,6 +11,10 @@ import (
 	"k8s.io/kubectl/pkg/validation"
 )
 
+// DefaultValidation default action to validate. If `true` all resources by
+// default will be validated.
+const DefaultValidation = true
+
 // Client is a kubernetes client, like `kubectl`
 type Client struct {
 	Clientset        *kubernetes.Clientset
@@ -25,14 +29,21 @@ type Result = resource.Result
 
 // BuilderOptions parameters to create a Resource Builder
 type BuilderOptions struct {
-	Unstructured bool
+	Unstructured  bool
+	Validate      bool
+	Namespace     string
+	LabelSelector string
+	FieldSelector string
+	All           bool
+	AllNamespaces bool
 }
 
-// DefaultBuilderOptions creates a BuilderOptions with the default values for
+// NewBuilderOptions creates a BuilderOptions with the default values for
 // the parameters to create a Resource Builder
-func DefaultBuilderOptions() *BuilderOptions {
+func NewBuilderOptions() *BuilderOptions {
 	return &BuilderOptions{
 		Unstructured: true,
+		Validate:     true,
 	}
 }
 
@@ -41,7 +52,8 @@ func NewE(context, kubeconfig string) (*Client, error) {
 	factory := newFactory(context, kubeconfig)
 
 	// If `true` it will always validate the given objects/resources
-	validator, _ := factory.Validator(true)
+	// Unless something different is specified in the NewBuilderOptions
+	validator, _ := factory.Validator(DefaultValidation)
 
 	namespace, enforceNamespace, err := factory.ToRawKubeConfigLoader().Namespace()
 	if err != nil {
@@ -73,19 +85,29 @@ func New(context, kubeconfig string) *Client {
 
 // Builder creates a resource builder
 func (c *Client) builder(opt *BuilderOptions) *resource.Builder {
-	if opt == nil {
-		opt = DefaultBuilderOptions()
-	}
-	b := c.factory.NewBuilder()
+	validator := c.validator
+	namespace := c.namespace
 
+	if opt == nil {
+		opt = NewBuilderOptions()
+	} else {
+		if opt.Validate != DefaultValidation {
+			validator, _ = c.factory.Validator(opt.Validate)
+		}
+		if opt.Namespace != "" {
+			namespace = opt.Namespace
+		}
+	}
+
+	b := c.factory.NewBuilder()
 	if opt.Unstructured {
 		b = b.Unstructured()
 	}
 
 	return b.
-		Schema(c.validator).
+		Schema(validator).
 		ContinueOnError().
-		NamespaceParam(c.namespace).DefaultNamespace()
+		NamespaceParam(namespace).DefaultNamespace()
 }
 
 // ResultForFilenameParam returns the builder results for the given list of files or URLs
@@ -108,6 +130,17 @@ func (c *Client) ResultForReader(r io.Reader, opt *BuilderOptions) *Result {
 		Flatten().
 		Do()
 }
+
+// func (c *Client) ResultForName(opt *BuilderOptions, names ...string) *Result {
+// 	return c.builder(opt).
+// 		LabelSelectorParam(opt.LabelSelector).
+// 		FieldSelectorParam(opt.FieldSelector).
+// 		SelectAllParam(opt.All).
+// 		AllNamespaces(opt.AllNamespaces).
+// 		ResourceTypeOrNameArgs(false, names...).RequireObject(false).
+// 		Flatten().
+// 		Do()
+// }
 
 // ResultForContent returns the builder results for the given content
 func (c *Client) ResultForContent(content []byte, opt *BuilderOptions) *Result {
