@@ -19,6 +19,9 @@ func (c *Client) DeleteFiles(filenames ...string) error {
 
 // DeleteResource applies the given resource. Create the resources with `ResultForFilenameParam` or `ResultForContent`
 func (c *Client) DeleteResource(r *resource.Result) error {
+	if err := r.Err(); err != nil {
+		return err
+	}
 	return r.Visit(delete)
 }
 

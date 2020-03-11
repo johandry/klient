@@ -19,6 +19,9 @@ func (c *Client) CreateFile(filenames ...string) error {
 
 // CreateResource creates the given resource. Create the resources with `ResultForFilenameParam` or `ResultForContent`
 func (c *Client) CreateResource(r *resource.Result) error {
+	if err := r.Err(); err != nil {
+		return err
+	}
 	return r.Visit(create)
 }
 
@@ -33,11 +36,6 @@ func create(info *resource.Info, err error) error {
 		return failedTo("create", info, err)
 	}
 	info.Refresh(obj, true)
-	return nil
-}
 
-func reCreate(info *resource.Info) error {
-	// TODO: this method is to delete and create the resource. Requires the
-	// implementation of a delete method
 	return nil
 }

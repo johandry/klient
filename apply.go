@@ -19,6 +19,9 @@ func (c *Client) ApplyFiles(filenames ...string) error {
 
 // ApplyResource applies the given resource. Create the resources with `ResultForFilenameParam` or `ResultForContent`
 func (c *Client) ApplyResource(r *resource.Result) error {
+	if err := r.Err(); err != nil {
+		return err
+	}
 	return r.Visit(apply)
 }
 
