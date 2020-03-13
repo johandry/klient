@@ -1,4 +1,5 @@
 SHELL	:= /bin/bash
+GOTEST ?= go
 
 .PHONY: install 
 install: fmt test
@@ -6,7 +7,7 @@ install: fmt test
 
 .PHONY: test
 test:
-	go test -cover -race -coverprofile=coverage.txt -covermode=atomic -v ./...
+	$(GOTEST) test -cover -race -coverprofile=coverage.txt -covermode=atomic -v ./...
 
 .PHONY: fmt
 fmt:
