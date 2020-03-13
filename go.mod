@@ -3,7 +3,7 @@ module github.com/johandry/klient
 go 1.14
 
 require (
-	github.com/evanphx/json-patch v4.5.0+incompatible // indirect
+	github.com/evanphx/json-patch v4.5.0+incompatible
 	github.com/jonboulle/clockwork v0.1.0
 	k8s.io/api v0.17.3
 	k8s.io/apiextensions-apiserver v0.17.3

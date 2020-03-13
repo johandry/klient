@@ -11,6 +11,7 @@ import (
 	apiextv1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	apiextv1beta1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
 	"k8s.io/apimachinery/pkg/api/meta"
+	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/cli-runtime/pkg/resource"
@@ -39,6 +40,8 @@ type factory struct {
 	openAPIGetter         openapi.Getter
 }
 
+var k8sNativeScheme *runtime.Scheme
+
 // If multiple clients are created, this sync.once make sure the CRDs are added
 // only once into the API extensions v1 and v1beta schemes
 var addToSchemeOnce sync.Once
@@ -53,12 +56,24 @@ func newFactory(context, kubeconfig string) *factory {
 	}
 
 	// From: helm/pkg/kube/client.go > func New()
+	// From: helm/pkg/kube/converter.go > func kubernetesNativeScheme
 	// Add CRDs to the scheme. They are missing by default.
 	addToSchemeOnce.Do(func() {
 		if err := apiextv1.AddToScheme(scheme.Scheme); err != nil {
 			panic(err)
 		}
 		if err := apiextv1beta1.AddToScheme(scheme.Scheme); err != nil {
+			panic(err)
+		}
+
+		k8sNativeScheme = runtime.NewScheme()
+		if err := scheme.AddToScheme(k8sNativeScheme); err != nil {
+			panic(err)
+		}
+		if err := apiextv1beta1.AddToScheme(k8sNativeScheme); err != nil {
+			panic(err)
+		}
+		if err := apiextv1.AddToScheme(k8sNativeScheme); err != nil {
 			panic(err)
 		}
 	})

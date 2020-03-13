@@ -40,7 +40,7 @@ const (
 )
 
 // patch tries to patch an OpenAPI resource
-func patch(info *resource.Info, current runtime.Object) error {
+func patchV1(info *resource.Info, current runtime.Object) error {
 	// From: k8s.io/kubectl/pkg/cmd/apply/apply.go & patcher.go
 	modified, err := util.GetModifiedConfiguration(info.Object, true, unstructured.UnstructuredJSONScheme)
 	if err != nil {
