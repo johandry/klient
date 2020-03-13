@@ -6,7 +6,9 @@ Klient is a Simple Kubernetes Client in Go. Its goal is to provide an easy inter
 
 This package is not a replacement of `k8s.io/client-go`, its main purpose is to apply, create, delete or replace resources using the YAML or JSON representation of Kubernetes objects. The package `k8s.io/client-go` requires to know what objects are going to be managed and uses the Kubernetes API to manage them. If you have a file, URL, stream or string with a Kubernetes object to apply (not knowing exactly what's inside) then `klient` will help you.
 
-This package is part of the blog article [Building a Kubernetes Client in Go](http://blog.johandry.com/post/kubernetes_client/). Refer to this blog post to know why and how Klient was made.
+<!-- 
+This package is part of the blog article [Building a Kubernetes Client in Go](http://blog.johandry.com/post/kubernetes_client/). Refer to this blog post to know why and how Klient was made. 
+-->
 
 ## How to use
 
@@ -34,7 +36,7 @@ func main() {
   name := "apple"
   cm := []byte(`{"apiVersion": "v1", "kind": "ConfigMap", "metadata": { "name": "fruit" }, "data": {	"name": "` + name + `" } }`)
 
-  c := klient.NewClient("", "") // Take the Kubernetes config from the default location (~/.kube/config) and using the default context.
+  c := klient.New("", "") // Take the Kubernetes config from the default location (~/.kube/config) and using the default context.
   if err := c.Apply(cm); err != nil {
     log.Fatal("failed to apply the ConfigMap")
   }

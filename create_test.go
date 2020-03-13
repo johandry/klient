@@ -49,7 +49,7 @@ func TestClient_Create_thenDelete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c, err := NewClientE(tt.context, tt.kubeconfig)
+			c, err := NewE(tt.context, tt.kubeconfig)
 			if err != nil {
 				t.Fatalf("failed to create the client with context %q and kubeconfig %q", tt.context, tt.kubeconfig)
 			}
@@ -126,7 +126,7 @@ func TestClient_CreateFile_thenDlete(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c, err := NewClientE(tt.context, tt.kubeconfig)
+			c, err := NewE(tt.context, tt.kubeconfig)
 			if err != nil {
 				t.Fatalf("failed to create the client with context %q and kubeconfig %q", tt.context, tt.kubeconfig)
 			}
