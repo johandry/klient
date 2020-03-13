@@ -30,6 +30,8 @@ func create(info *resource.Info, err error) error {
 		return failedTo("create", info, err)
 	}
 
+	// TODO: If will be allow to do create then apply, here must be added the annotation as in Apply/Patch
+
 	options := metav1.CreateOptions{}
 	obj, err := resource.NewHelper(info.Client, info.Mapping).Create(info.Namespace, true, info.Object, &options)
 	if err != nil {

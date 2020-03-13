@@ -31,7 +31,7 @@ func replace(info *resource.Info, err error) error {
 
 	obj, err := resource.NewHelper(info.Client, info.Mapping).Replace(info.Namespace, info.Name, true, info.Object)
 	if err != nil {
-		return failedTo("create", info, err)
+		return failedTo("replace", info, err)
 	}
 	info.Refresh(obj, true)
 

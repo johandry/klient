@@ -22,6 +22,8 @@ type Client struct {
 	validator        validation.Schema
 	namespace        string
 	enforceNamespace bool
+	forceConflicts   bool
+	ServerSideApply  bool
 }
 
 // Result is an alias for the Kubernetes CLI runtime resource.Result
