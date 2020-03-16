@@ -76,26 +76,26 @@ func newFactory(context, kubeconfig string) *factory {
 // It's required to implement the interface genericclioptions.RESTClientGetter
 func (f *factory) ToRESTConfig() (*rest.Config, error) {
 	// From: k8s.io/kubectl/pkg/cmd/util/kubectl_match_version.go > func setKubernetesDefaults()
-	factory, err := f.ToRawKubeConfigLoader().ClientConfig()
+	config, err := f.ToRawKubeConfigLoader().ClientConfig()
 	if err != nil {
 		return nil, err
 	}
 
-	if factory.GroupVersion == nil {
-		factory.GroupVersion = &schema.GroupVersion{Group: "", Version: "v1"}
+	if config.GroupVersion == nil {
+		config.GroupVersion = &schema.GroupVersion{Group: "", Version: "v1"}
 	}
-	if factory.APIPath == "" {
-		factory.APIPath = "/api"
+	if config.APIPath == "" {
+		config.APIPath = "/api"
 	}
-	if factory.NegotiatedSerializer == nil {
-		// This codec factory ensures the resources are not converted. Therefore, resources
+	if config.NegotiatedSerializer == nil {
+		// This codec config ensures the resources are not converted. Therefore, resources
 		// will not be round-tripped through internal versions. Defaulting does not happen
 		// on the client.
-		factory.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
+		config.NegotiatedSerializer = scheme.Codecs.WithoutConversion()
 	}
 
-	rest.SetKubernetesDefaults(factory)
-	return factory, nil
+	rest.SetKubernetesDefaults(config)
+	return config, nil
 }
 
 // ToRawKubeConfigLoader creates a client factory using the following rules:
