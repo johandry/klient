@@ -1,5 +1,11 @@
 SHELL	:= /bin/bash
-GOTEST ?= go
+
+# Install richgo from https://github.com/kyoh86/richgo
+ifeq (,$(shell which richgo))
+	GOTEST := go
+else
+	GOTEST := richgo
+endif
 
 .PHONY: install 
 install: fmt test
