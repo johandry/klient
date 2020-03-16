@@ -51,6 +51,8 @@ func main() {
 }
 ```
 
+For more examples go to the GitHub repository [johandry/klient-examples](https://github.com/johandry/klient-examples).
+
 ## Sources and Acknowledge
 
 Many thanks to the contributors of [Kubectl](https://github.com/kubernetes/kubectl) and [Helm](https://github.com/helm/helm). This package was made inspired by these two amazing projects.
